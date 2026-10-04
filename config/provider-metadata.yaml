@@ -1,0 +1,15 @@
+name: lfventura/slack
+resources:
+  slack_conversation:
+    name: slack_conversation
+    title: slack_conversation
+    description: Manages a Slack conversation using the pinned upstream Terraform SDK provider.
+    argumentDocs:
+      name: Slack channel name. External identity is the Slack-generated channel ID, not this name.
+      adopt_existing_channel: Adopt an existing channel when creation reports name_taken; unarchive before applying settings. Set true to restore a deleted declaration with the same Slack ID.
+      permanent_members: Declared Slack user IDs. Missing declared members are restored; upstream updates may remove unlisted members except the OAuth principal and channel creator.
+      action_on_destroy: Archive the Slack channel on deletion (archive, the upstream default), or leave it unchanged (none).
+      action_on_update_permanent_members: Permit upstream removal of unlisted members (kick, the upstream default), or retain them (none).
+      is_archived: Desired archive state. Set false to restore an adopted channel.
+      team_id: Optional Slack workspace/team ID. Changing this forces recreation upstream and is not supported as an in-place workspace move.
+      is_private: Desired privacy. Upstream privacy changes use the Slack Admin API and require Enterprise Grid permissions.

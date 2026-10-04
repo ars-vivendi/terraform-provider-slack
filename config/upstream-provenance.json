@@ -1,0 +1,26 @@
+{
+  "baseReplacementModule": "github.com/lfventura/terraform-provider-slack",
+  "baseReplacementVersion": "v1.2.14-0.20260808215558-b4b4cabd248a",
+  "goModSum": "h1:LmGnMOs/Gzyem2rmF1JFCZO6RM0zkE1/cQ58NmpzkX0=",
+  "modulePath": "github.com/pablovarela/terraform-provider-slack",
+  "moduleSum": "h1:qCOtYfDKY4SaiacuAbWKLxwX/UjS5eR1OM2a6NoHO84=",
+  "replacementCommit": "6758d581211eb41d87725bab47ecb452617a658e",
+  "replacementModule": "github.com/ars-vivendi/terraform-provider-slack-sdk",
+  "replacementVersion": "v1.2.14-0.20261004145015-6758d581211e",
+  "schemaResourceAllowlist": [
+    "slack_conversation"
+  ],
+  "schemaSHA256": "bef33d926d255ab83c12163a33b0f1850f178dd7ed85739952adc72b3fcba3a0",
+  "schemaSource": "upstream SDK v2 GRPCProvider.GetProviderSchema",
+  "terraformProvider": "lfventura/slack",
+  "terraformVersion": "2.1.1",
+  "upjetGoModSum": "h1:mk+Me18gPUhsQMWgg225vOsGeFocD9/GYI6opMSgHzk=",
+  "upjetModuleSum": "h1:c4RcBHfrtleaW/JIMrXHO1b/PzSznt2hxiWTXoAamOU=",
+  "upjetReplacementCommit": "c3f424997d7914bfd163cad0956d20f61242d0a4",
+  "upjetReplacementModule": "github.com/ars-vivendi/upjet/v2",
+  "upjetReplacementVersion": "v2.5.2-0.20261004140655-c3f424997d79",
+  "upjetUpstreamPullRequest": "https://github.com/crossplane/upjet/pull/772",
+  "upjetVersion": "v2.5.1",
+  "upstreamCommit": "b4b4cabd248a9d94c9d809fad8ce7bef55d5dae0",
+  "upstreamPullRequest": "https://github.com/lfventura/terraform-provider-slack/pull/31"
+}

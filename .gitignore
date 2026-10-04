@@ -1,0 +1,9 @@
+.DS_Store
+/bin/
+/build/
+/dist/
+/_output/
+/vendor/
+*.xpkg
+*.test
+/coverage.out

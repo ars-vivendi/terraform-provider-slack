@@ -1,0 +1,13 @@
+apiVersion: meta.pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-slack
+  annotations:
+    meta.crossplane.io/source: https://github.com/ars-vivendi/terraform-provider-slack
+    meta.crossplane.io/license: GPL-3.0-only
+    meta.crossplane.io/description: Native Crossplane provider for namespaced Slack conversations using Upjet v2 and the pinned lfventura/slack Terraform SDK provider.
+spec:
+  crossplane:
+    version: ">=v2.4.2"
+  capabilities:
+    - SafeStart
