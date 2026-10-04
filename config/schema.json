@@ -1,0 +1,172 @@
+{
+  "format_version": "1.0",
+  "provider_schemas": {
+    "registry.terraform.io/lfventura/slack": {
+      "provider": {
+        "block": {
+          "attributes": {
+            "token": {
+              "computed": false,
+              "description": "The Slack token",
+              "optional": false,
+              "required": true,
+              "sensitive": true,
+              "type": "string"
+            }
+          },
+          "description": ""
+        },
+        "version": 0
+      },
+      "resource_schemas": {
+        "slack_conversation": {
+          "block": {
+            "attributes": {
+              "action_on_destroy": {
+                "computed": false,
+                "description": "Either of none or archive",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "string"
+              },
+              "action_on_update_permanent_members": {
+                "computed": false,
+                "description": "Either of none or kick",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "string"
+              },
+              "adopt_existing_channel": {
+                "computed": false,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "bool"
+              },
+              "created": {
+                "computed": true,
+                "description": "",
+                "optional": false,
+                "required": false,
+                "sensitive": false,
+                "type": "number"
+              },
+              "creator": {
+                "computed": true,
+                "description": "",
+                "optional": false,
+                "required": false,
+                "sensitive": false,
+                "type": "string"
+              },
+              "id": {
+                "computed": true,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "string"
+              },
+              "is_archived": {
+                "computed": false,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "bool"
+              },
+              "is_ext_shared": {
+                "computed": true,
+                "description": "",
+                "optional": false,
+                "required": false,
+                "sensitive": false,
+                "type": "bool"
+              },
+              "is_general": {
+                "computed": true,
+                "description": "",
+                "optional": false,
+                "required": false,
+                "sensitive": false,
+                "type": "bool"
+              },
+              "is_org_shared": {
+                "computed": true,
+                "description": "",
+                "optional": false,
+                "required": false,
+                "sensitive": false,
+                "type": "bool"
+              },
+              "is_private": {
+                "computed": false,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "bool"
+              },
+              "is_shared": {
+                "computed": true,
+                "description": "",
+                "optional": false,
+                "required": false,
+                "sensitive": false,
+                "type": "bool"
+              },
+              "name": {
+                "computed": false,
+                "description": "",
+                "optional": false,
+                "required": true,
+                "sensitive": false,
+                "type": "string"
+              },
+              "permanent_members": {
+                "computed": false,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": [
+                  "set",
+                  "string"
+                ]
+              },
+              "purpose": {
+                "computed": false,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "string"
+              },
+              "team_id": {
+                "computed": false,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "string"
+              },
+              "topic": {
+                "computed": false,
+                "description": "",
+                "optional": true,
+                "required": false,
+                "sensitive": false,
+                "type": "string"
+              }
+            },
+            "description": ""
+          },
+          "version": 0
+        }
+      }
+    }
+  }
+}

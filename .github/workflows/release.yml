@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a semver tag on merged default-branch history
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          semver='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$'
+          if [[ "$GITHUB_REF_TYPE" != tag || ! "$GITHUB_REF_NAME" =~ $semver ]]; then
+            printf 'Release requires a vMAJOR.MINOR.PATCH tag (optional semver prerelease).\n' >&2
+            exit 1
+          fi
+          git merge-base --is-ancestor HEAD "refs/remotes/origin/$DEFAULT_BRANCH"
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+      - name: Rerun format, generation, vet, tests and versioned build
+        run: bash scripts/check.sh "$GITHUB_REF_NAME"
+      - name: Build embedded provider package and matching source
+        run: |
+          bash scripts/install-crossplane.sh
+          bash scripts/install-crane.sh
+          bash scripts/build-package.sh "$GITHUB_REF_NAME"
+          bash scripts/build-source.sh "$GITHUB_REF_NAME"
+      - name: Hash release artifacts
+        working-directory: _output
+        run: |
+          sha256sum "terraform-provider-slack-$GITHUB_REF_NAME-linux-amd64.xpkg" \
+            "terraform-provider-slack-$GITHUB_REF_NAME-source.tar.gz" > SHA256SUMS
+      - name: Save release artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: terraform-provider-slack-${{ github.ref_name }}-linux-amd64
+          path: |
+            _output/terraform-provider-slack-${{ github.ref_name }}-linux-amd64.xpkg
+            _output/terraform-provider-slack-${{ github.ref_name }}-source.tar.gz
+            _output/SHA256SUMS
+          if-no-files-found: error
+      - name: Require publishing configuration
+        env:
+          UPBOUND_ORGANIZATION: ${{ vars.UPBOUND_ORGANIZATION }}
+        run: |
+          if [[ ! "$UPBOUND_ORGANIZATION" =~ ^[a-z0-9]+([_-][a-z0-9]+)*$ ]]; then
+            printf 'Set the UPBOUND_ORGANIZATION repository variable to the authorized Upbound namespace.\n' >&2
+            exit 1
+          fi
+      - name: Log in with Upbound robot credentials
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: xpkg.upbound.io
+          username: ${{ secrets.UPBOUND_ROBOT_ACCESS_ID }}
+          password: ${{ secrets.UPBOUND_ROBOT_TOKEN }}
+      - name: Publish GitHub release assets with corresponding source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=(--verify-tag --title "$GITHUB_REF_NAME"
+            --notes 'Linux/amd64 provider package with embedded runtime. Matching source with vendored dependencies and SHA256SUMS are attached.')
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" "${flags[@]}" \
+            "_output/terraform-provider-slack-$GITHUB_REF_NAME-linux-amd64.xpkg" \
+            "_output/terraform-provider-slack-$GITHUB_REF_NAME-source.tar.gz" \
+            _output/SHA256SUMS
+      - name: Publish and report registry manifest digest
+        shell: bash
+        env:
+          UPBOUND_ORGANIZATION: ${{ vars.UPBOUND_ORGANIZATION }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repository="xpkg.upbound.io/$UPBOUND_ORGANIZATION/terraform-provider-slack"
+          ref="$repository:$GITHUB_REF_NAME"
+          _output/bin/crossplane xpkg push "$ref" \
+            --package-files="_output/terraform-provider-slack-$GITHUB_REF_NAME-linux-amd64.xpkg"
+          digest=$(_output/bin/crane digest --platform=all "$ref")
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          printf 'Published: %s\nManifest digest: %s\nImmutable reference: %s@%s\n' \
+            "$ref" "$digest" "$repository" "$digest"
+          printf "Package: \`%s\`\n\nManifest digest: \`%s\`\n\nImmutable reference: \`%s@%s\`\n" \
+            "$ref" "$digest" "$repository" "$digest" > _output/release-notes.md
+          printf '\nMatching source with vendored dependencies and SHA256SUMS are attached to this release.\n' \
+            >> _output/release-notes.md
+          tee -a "$GITHUB_STEP_SUMMARY" < _output/release-notes.md
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --notes-file _output/release-notes.md
