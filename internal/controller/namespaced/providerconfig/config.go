@@ -26,12 +26,16 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		name := providerconfig.ControllerName(schema.GroupKind{Group: gvk.Group, Kind: gvk.Kind}.String())
 		kinds := resource.ProviderConfigKinds{Config: gvk, Usage: v1beta1.ProviderConfigUsageGroupVersionKind, UsageList: v1beta1.ProviderConfigUsageListGroupVersionKind}
 		if err := ctrl.NewControllerManagedBy(mgr).Named(name).WithOptions(o.ForControllerRuntime()).For(obj).
-			Watches(&v1beta1.ProviderConfigUsage{}, &resource.EnqueueRequestForProviderConfig{}).
+			Watches(&v1beta1.ProviderConfigUsage{}, usageEventHandler(gvk)).
 			Complete(providerconfig.NewReconciler(mgr, kinds, providerconfig.WithLogger(o.Logger.WithValues("controller", name)), providerconfig.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name))))); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func usageEventHandler(gvk schema.GroupVersionKind) *resource.EnqueueRequestForProviderConfig {
+	return &resource.EnqueueRequestForProviderConfig{Kind: gvk.Kind}
 }
 
 // SetupGated starts configuration controllers once their CRDs are established.

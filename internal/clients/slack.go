@@ -57,6 +57,16 @@ func TerraformSetupBuilder(managementPoliciesEnabled bool) terraform.SetupFn {
 			ref = &xpv2.ProviderConfigReference{Kind: "ClusterProviderConfig", Name: "default"}
 			m.SetProviderConfigReference(ref)
 		}
+		switch ref.Kind {
+		case "ProviderConfig", "ClusterProviderConfig":
+		default:
+			return terraform.Setup{}, fmt.Errorf("unsupported providerConfigRef kind %q", ref.Kind)
+		}
+		// Track the desired reference even when its configuration is absent or
+		// invalid, so a previous configuration is no longer kept in use.
+		if err := resource.NewProviderConfigUsageTracker(c, &v1beta1.ProviderConfigUsage{}).Track(ctx, m); err != nil {
+			return terraform.Setup{}, fmt.Errorf("track ProviderConfig usage: %w", err)
+		}
 		var spec v1beta1.ProviderConfigSpec
 		switch ref.Kind {
 		case "ProviderConfig":
@@ -76,17 +86,12 @@ func TerraformSetupBuilder(managementPoliciesEnabled bool) terraform.SetupFn {
 				return terraform.Setup{}, fmt.Errorf("get ClusterProviderConfig: %w", err)
 			}
 			spec = pc.Spec
-		default:
-			return terraform.Setup{}, fmt.Errorf("unsupported providerConfigRef kind %q", ref.Kind)
 		}
 		if spec.Credentials.Source != xpv2.CredentialsSourceSecret || spec.Credentials.SecretRef == nil {
 			return terraform.Setup{}, fmt.Errorf("credentials source must be Secret with secretRef")
 		}
 		if spec.Credentials.SecretRef.Namespace == "" {
 			return terraform.Setup{}, fmt.Errorf("credential Secret namespace is required")
-		}
-		if err := resource.NewProviderConfigUsageTracker(c, &v1beta1.ProviderConfigUsage{}).Track(ctx, m); err != nil {
-			return terraform.Setup{}, fmt.Errorf("track ProviderConfig usage: %w", err)
 		}
 		secretRef := spec.Credentials.SecretRef
 		data, err := resource.CommonCredentialExtractor(ctx, spec.Credentials.Source, c, xpv2.CommonCredentialSelectors{SecretRef: &xpv2.SecretKeySelector{SecretReference: xpv2.SecretReference{Name: secretRef.Name, Namespace: secretRef.Namespace}, Key: secretRef.Key}})
